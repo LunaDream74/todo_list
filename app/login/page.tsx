@@ -46,7 +46,10 @@ export default function LoginPage() {
         }
         await signInWithCredentials(formData.email, formData.password);
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.digest?.includes?.('NEXT_REDIRECT') || err?.message?.includes?.('NEXT_REDIRECT')) {
+        return; 
+      }
       setError(err instanceof Error ? err.message : 'Authentication failed');
       setIsLoading(false);
     }
