@@ -8,9 +8,10 @@ import { X } from 'lucide-react';
 interface TodoFormProps {
   onAdd: (text: string, deadline: string) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export default function TodoForm({ onAdd, onCancel }: TodoFormProps) {
+export default function TodoForm({ onAdd, onCancel, isLoading = false }: TodoFormProps) {
   const [text, setText] = useState('');
   const [deadline, setDeadline] = useState('');
 
@@ -61,6 +62,7 @@ export default function TodoForm({ onAdd, onCancel }: TodoFormProps) {
           <Button
             type="submit"
             className="flex-1 bg-green-600 hover:bg-green-700"
+            disabled={isLoading}
           >
             Add Task
           </Button>
@@ -69,6 +71,7 @@ export default function TodoForm({ onAdd, onCancel }: TodoFormProps) {
             variant="outline"
             onClick={onCancel}
             className="flex-1"
+            disabled={isLoading}
           >
             <X className="w-4 h-4 mr-2" />
             Cancel

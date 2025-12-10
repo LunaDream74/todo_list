@@ -4,14 +4,21 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Todo } from '@/app/types';
 import { Trash2, Check, Edit2, X, Save } from 'lucide-react';
 
 interface TodoItemProps {
-  todo: Todo;
-  onToggle: (id: string) => void;
-  onEdit: (id: string, text: string, deadline: string) => void;
-  onDelete: (id: string) => void;
+  todo: {
+    id: number;
+    text: string;
+    deadline: string;
+    status: string;
+    finishedTime?: string;
+    userId: number;
+  };
+  onToggle: (id: number) => void;
+  onEdit: (id: number, text: string, deadline: string) => void;
+  onDelete: (id: number) => void;
+  isDisabled?: boolean;
 }
 
 export default function TodoItem({
@@ -19,6 +26,7 @@ export default function TodoItem({
   onToggle,
   onEdit,
   onDelete,
+  isDisabled = false,
 }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
@@ -80,6 +88,7 @@ export default function TodoItem({
               onClick={handleSave}
               className="flex-1 bg-green-600 hover:bg-green-700"
               size="sm"
+              disabled={isDisabled}
             >
               <Save className="w-4 h-4 mr-2" />
               Save
@@ -89,6 +98,7 @@ export default function TodoItem({
               variant="outline"
               size="sm"
               className="flex-1"
+              disabled={isDisabled}
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
@@ -116,6 +126,7 @@ export default function TodoItem({
             checked={todo.status === 'done'}
             onCheckedChange={() => onToggle(todo.id)}
             className="w-5 h-5"
+            disabled={isDisabled}
           />
         </div>
 
@@ -159,6 +170,7 @@ export default function TodoItem({
             size="sm"
             className="p-2 h-10 w-10"
             title="Edit task"
+            disabled={isDisabled}
           >
             <Edit2 className="w-4 h-4" />
           </Button>
@@ -168,6 +180,7 @@ export default function TodoItem({
             size="sm"
             className="p-2 h-10 w-10 text-red-600 hover:text-red-700 hover:bg-red-50"
             title="Delete task"
+            disabled={isDisabled}
           >
             <Trash2 className="w-4 h-4" />
           </Button>

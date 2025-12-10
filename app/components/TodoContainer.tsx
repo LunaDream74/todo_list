@@ -1,131 +1,131 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Todo } from '@/app/types';
 import TodoForm from './TodoForm';
 import TodoItem from './TodoItem';
 import SearchBar from './SearchBar';
 import FilterBar, { StatusFilter, DeadlineFilter } from './FilterBar';
 import SortBar, { SortOption } from './SortBar';
-import { Trash2, Plus, Settings2 } from 'lucide-react';
+import { Settings2, Plus, Loader, LogOut } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  toggleTodoStatus,
+} from '@/app/actions/todoActions';
+import { handleSignOut } from '@/app/actions/authActions';
+
+interface Todo {
+  id: number;
+  text: string;
+  deadline: string;
+  status: string;
+  finishedTime?: string;
+  userId: number;
+}
 
 export default function TodoContainer() {
-  // Generate today's date and other date references
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  
-  const nextWeek = new Date(today);
-  nextWeek.setDate(nextWeek.getDate() + 7);
-  
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const formatDateString = (date: Date) => date.toISOString().split('T')[0];
-
-  const [todos, setTodos] = useState<Todo[]>([
-    {
-      id: '1',
-      text: 'Complete project proposal',
-      deadline: formatDateString(nextWeek),
-      status: 'pending',
-    },
-    {
-      id: '2',
-      text: 'Review team feedback',
-      deadline: formatDateString(yesterday),
-      status: 'done',
-      finishedTime: new Date(2025, 11, 11, 14, 30).toISOString(),
-    },
-    {
-      id: '3',
-      text: 'Setup development environment',
-      deadline: formatDateString(nextWeek),
-      status: 'pending',
-    },
-    {
-      id: '4',
-      text: 'Update documentation',
-      deadline: formatDateString(yesterday),
-      status: 'pending',
-    },
-    {
-      id: '5',
-      text: 'Meeting with client',
-      deadline: formatDateString(tomorrow),
-      status: 'pending',
-    },
-    {
-      id: '6',
-      text: 'Fix reported bugs',
-      deadline: formatDateString(today),
-      status: 'done',
-      finishedTime: new Date().toISOString(),
-    },
-  ]);
-
+  const { data: session } = useSession();
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [deadlineFilter, setDeadlineFilter] = useState<DeadlineFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('deadline-asc');
   const [showFilters, setShowFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const addTodo = (text: string, deadline: string) => {
-    const newTodo: Todo = {
-      id: Date.now().toString(),
-      text,
-      deadline,
-      status: 'pending',
+  // Load todos on component mount
+  useEffect(() => {
+    const loadTodos = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getTodos();
+        setTodos(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load todos');
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setTodos([...todos, newTodo]);
-    setShowForm(false);
+
+    if (session?.user) {
+      loadTodos();
+    }
+  }, [session?.user]);
+
+  const handleAddTodo = async (text: string, deadline: string) => {
+    try {
+      setIsSaving(true);
+      setError('');
+      const newTodo = await createTodo(text, deadline);
+      setTodos([...todos, newTodo]);
+      setShowForm(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create todo');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const updateTodo = (id: string, text: string, deadline: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, text, deadline } : todo
-      )
-    );
+  const handleUpdateTodo = async (
+    id: number,
+    text: string,
+    deadline: string
+  ) => {
+    try {
+      setIsSaving(true);
+      setError('');
+      const updated = await updateTodo(id, text, deadline);
+      setTodos(todos.map(t => (t.id === id ? updated : t)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update todo');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleDeleteTodo = async (id: number) => {
+    try {
+      setIsSaving(true);
+      setError('');
+      await deleteTodo(id);
+      setTodos(todos.filter(t => t.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete todo');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const toggleStatus = (id: string) => {
-    setTodos(
-      todos.map((todo) => {
-        if (todo.id === id) {
-          const newStatus = todo.status === 'pending' ? 'done' : 'pending';
-          return {
-            ...todo,
-            status: newStatus,
-            finishedTime: newStatus === 'done' ? new Date().toISOString() : undefined,
-          };
-        }
-        return todo;
-      })
-    );
+  const handleToggleStatus = async (id: number) => {
+    try {
+      setIsSaving(true);
+      setError('');
+      const updated = await toggleTodoStatus(id);
+      setTodos(todos.map(t => (t.id === id ? updated : t)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update todo');
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  const pendingTodos = todos.filter((todo) => todo.status === 'pending');
-  const doneTodos = todos.filter((todo) => todo.status === 'done');
 
   // Filtering and sorting logic
   const getDeadlineCategory = (deadline: string): 'overdue' | 'today' | 'future' => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const deadlineDate = new Date(deadline);
     deadlineDate.setHours(0, 0, 0, 0);
-    
+
     if (deadlineDate < today) return 'overdue';
     if (deadlineDate.getTime() === today.getTime()) return 'today';
     return 'future';
@@ -134,35 +134,30 @@ export default function TodoContainer() {
   const filteredAndSortedTodos = useMemo(() => {
     let result = [...todos];
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      result = result.filter((todo) =>
+      result = result.filter(todo =>
         todo.text.toLowerCase().includes(query)
       );
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
-      result = result.filter((todo) => todo.status === statusFilter);
+      result = result.filter(todo => todo.status === statusFilter);
     }
 
-    // Apply deadline filter
     if (deadlineFilter !== 'all') {
-      result = result.filter((todo) => {
+      result = result.filter(todo => {
         const category = getDeadlineCategory(todo.deadline);
         return category === deadlineFilter;
       });
     }
 
-    // Apply sorting
     result.sort((a, b) => {
       if (sortOption === 'deadline-asc') {
         return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
       } else if (sortOption === 'deadline-desc') {
         return new Date(b.deadline).getTime() - new Date(a.deadline).getTime();
       } else if (sortOption === 'status') {
-        // Pending first, then done
         if (a.status === 'pending' && b.status !== 'pending') return -1;
         if (a.status !== 'pending' && b.status === 'pending') return 1;
         return 0;
@@ -173,19 +168,60 @@ export default function TodoContainer() {
     return result;
   }, [todos, searchQuery, statusFilter, deadlineFilter, sortOption]);
 
+  const pendingTodos = todos.filter(todo => todo.status === 'pending');
+  const doneTodos = todos.filter(todo => todo.status === 'done');
+
+  const handleSignOutClick = async () => {
+    await handleSignOut();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              My Tasks
-            </h1>
-            <p className="text-gray-600">
-              {todos.length} total · {pendingTodos.length} pending · {doneTodos.length} completed
-            </p>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                My Tasks
+              </h1>
+              <p className="text-gray-600">
+                Welcome, {session?.user?.name || 'User'}! • {todos.length} total · {pendingTodos.length} pending · {doneTodos.length} completed
+              </p>
+            </div>
+            <Button
+              onClick={handleSignOutClick}
+              variant="outline"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
+          {isSaving && (
+            <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg text-blue-600 text-sm flex items-center">
+              <Loader className="w-4 h-4 animate-spin mr-2" />
+              Saving changes...
+            </div>
+          )}
 
           {/* Search Bar */}
           <div className="mb-6">
@@ -198,6 +234,7 @@ export default function TodoContainer() {
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
+              disabled={isSaving}
             >
               <Settings2 className="w-4 h-4" />
               {showFilters ? 'Hide Filters' : 'Show Filters & Sort'}
@@ -223,6 +260,7 @@ export default function TodoContainer() {
               onClick={() => setShowForm(true)}
               className="w-full mb-6 bg-blue-600 hover:bg-blue-700"
               size="lg"
+              disabled={isSaving}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add New Task
@@ -232,70 +270,79 @@ export default function TodoContainer() {
           {/* Todo Form */}
           {showForm && (
             <TodoForm
-              onAdd={addTodo}
+              onAdd={handleAddTodo}
               onCancel={() => setShowForm(false)}
+              isLoading={isSaving}
             />
           )}
 
-          {/* Pending Todos Section */}
+          {/* Todos List */}
           {filteredAndSortedTodos.length > 0 && (
             <div className="space-y-6">
               {(() => {
-                // Group todos by status or show all depending on filter
                 if (statusFilter !== 'all') {
-                  // Show all filtered results without grouping
                   return (
                     <div>
                       <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-                        <span className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                          statusFilter === 'pending' ? 'bg-yellow-400' : 'bg-green-500'
-                        }`}></span>
-                        {statusFilter === 'pending' ? 'Pending' : 'Completed'} Tasks ({filteredAndSortedTodos.length})
+                        <span
+                          className={`inline-block w-3 h-3 rounded-full mr-2 ${
+                            statusFilter === 'pending'
+                              ? 'bg-yellow-400'
+                              : 'bg-green-500'
+                          }`}
+                        ></span>
+                        {statusFilter === 'pending' ? 'Pending' : 'Completed'}{' '}
+                        Tasks ({filteredAndSortedTodos.length})
                       </h2>
                       <div className="space-y-3">
-                        {filteredAndSortedTodos.map((todo) => (
+                        {filteredAndSortedTodos.map(todo => (
                           <TodoItem
                             key={todo.id}
                             todo={todo}
-                            onToggle={toggleStatus}
-                            onEdit={updateTodo}
-                            onDelete={deleteTodo}
+                            onToggle={handleToggleStatus}
+                            onEdit={handleUpdateTodo}
+                            onDelete={handleDeleteTodo}
+                            isDisabled={isSaving}
                           />
                         ))}
                       </div>
                     </div>
                   );
                 } else if (deadlineFilter !== 'all') {
-                  // Show all filtered results without grouping by status
                   const categoryLabels: Record<DeadlineFilter, string> = {
                     all: 'All Tasks',
                     overdue: 'Overdue Tasks',
                     today: "Today's Tasks",
                     future: 'Future Tasks',
                   };
-                  
+
                   return (
                     <div>
                       <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                        {categoryLabels[deadlineFilter]} ({filteredAndSortedTodos.length})
+                        {categoryLabels[deadlineFilter]} (
+                        {filteredAndSortedTodos.length})
                       </h2>
                       <div className="space-y-3">
-                        {filteredAndSortedTodos.map((todo) => (
+                        {filteredAndSortedTodos.map(todo => (
                           <TodoItem
                             key={todo.id}
                             todo={todo}
-                            onToggle={toggleStatus}
-                            onEdit={updateTodo}
-                            onDelete={deleteTodo}
+                            onToggle={handleToggleStatus}
+                            onEdit={handleUpdateTodo}
+                            onDelete={handleDeleteTodo}
+                            isDisabled={isSaving}
                           />
                         ))}
                       </div>
                     </div>
                   );
                 } else {
-                  // Group by status when no specific filter is applied
-                  const pendingFiltered = filteredAndSortedTodos.filter(t => t.status === 'pending');
-                  const doneFiltered = filteredAndSortedTodos.filter(t => t.status === 'done');
+                  const pendingFiltered = filteredAndSortedTodos.filter(
+                    t => t.status === 'pending'
+                  );
+                  const doneFiltered = filteredAndSortedTodos.filter(
+                    t => t.status === 'done'
+                  );
 
                   return (
                     <>
@@ -306,13 +353,14 @@ export default function TodoContainer() {
                             Pending Tasks ({pendingFiltered.length})
                           </h2>
                           <div className="space-y-3">
-                            {pendingFiltered.map((todo) => (
+                            {pendingFiltered.map(todo => (
                               <TodoItem
                                 key={todo.id}
                                 todo={todo}
-                                onToggle={toggleStatus}
-                                onEdit={updateTodo}
-                                onDelete={deleteTodo}
+                                onToggle={handleToggleStatus}
+                                onEdit={handleUpdateTodo}
+                                onDelete={handleDeleteTodo}
+                                isDisabled={isSaving}
                               />
                             ))}
                           </div>
@@ -326,13 +374,14 @@ export default function TodoContainer() {
                             Completed Tasks ({doneFiltered.length})
                           </h2>
                           <div className="space-y-3">
-                            {doneFiltered.map((todo) => (
+                            {doneFiltered.map(todo => (
                               <TodoItem
                                 key={todo.id}
                                 todo={todo}
-                                onToggle={toggleStatus}
-                                onEdit={updateTodo}
-                                onDelete={deleteTodo}
+                                onToggle={handleToggleStatus}
+                                onEdit={handleUpdateTodo}
+                                onDelete={handleDeleteTodo}
+                                isDisabled={isSaving}
                               />
                             ))}
                           </div>
@@ -349,7 +398,9 @@ export default function TodoContainer() {
           {filteredAndSortedTodos.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">
-                {searchQuery || statusFilter !== 'all' || deadlineFilter !== 'all'
+                {searchQuery ||
+                statusFilter !== 'all' ||
+                deadlineFilter !== 'all'
                   ? 'No tasks match your filters. Try adjusting your search or filters.'
                   : 'No tasks yet. Create one to get started!'}
               </p>

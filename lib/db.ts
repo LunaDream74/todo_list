@@ -1,15 +1,25 @@
-const { PrismaClient } = require('@prisma/client');
+import { Pool, QueryResult } from 'pg';
 
-declare global {
-  var prisma: any | undefined;
-}
+let pool: Pool;
 
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query'] : [],
-  });
+const getPool = () => {
+  if (!pool) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    });
+  }
+  return pool;
+};
 
-if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
+export const query = (text: string, params?: unknown[]) => {
+  return getPool().query(text, params);
+};
 
-export default prisma;
+export const getConnection = () => {
+  return getPool();
+};
