@@ -1,7 +1,7 @@
-import { PrismaClient } from '@/lib/prisma';
+const { PrismaClient } = require('@prisma/client');
 
 declare global {
-  var prisma: PrismaClient | undefined;
+  var prisma: any | undefined;
 }
 
 export const prisma =
