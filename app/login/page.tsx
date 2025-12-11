@@ -78,19 +78,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-8 px-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center py-8 px-4">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl shadow-2xl border border-slate-700/50 p-8 w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-4xl font-bold text-white mb-2">
             My Tasks
           </h1>
-          <p className="text-gray-600">
+          <p className="text-slate-300">
             {isSignUp ? 'Create an account to get started' : 'Sign in to your account'}
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mb-4 p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
             {error}
           </div>
         )}
@@ -98,18 +98,18 @@ export default function LoginPage() {
         <form onSubmit={handleCredentialsSubmit} className="space-y-4 mb-6">
           {isSignUp && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-200 mb-2">
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <Input
                   type="text"
                   name="name"
                   placeholder="John Doe"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="pl-10"
+                  className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                   disabled={isLoading}
                   required
                 />
@@ -118,18 +118,18 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-200 mb-2">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
               <Input
                 type="email"
                 name="email"
                 placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="pl-10"
+                className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 disabled={isLoading}
                 required
               />
@@ -137,18 +137,18 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-200 mb-2">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
               <Input
                 type="password"
                 name="password"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="pl-10"
+                className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 disabled={isLoading}
                 required
               />
@@ -168,17 +168,17 @@ export default function LoginPage() {
 
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
+            <div className="w-full border-t border-slate-600"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            <span className="px-2 bg-slate-800 text-slate-400">Or continue with</span>
           </div>
         </div>
 
         <Button
           type="button"
           variant="outline"
-          className="w-full mb-6"
+          className="w-full mb-6 border-slate-600 text-slate-200 hover:bg-slate-700/50"
           onClick={handleGoogleSignIn}
           disabled={isLoading}
         >
@@ -187,7 +187,7 @@ export default function LoginPage() {
         </Button>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-slate-400 mb-2">
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}
           </p>
           <button
@@ -197,7 +197,7 @@ export default function LoginPage() {
               setError('');
               setFormData({ name: '', email: '', password: '' });
             }}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            className="text-purple-400 hover:text-purple-300 font-medium text-sm"
             disabled={isLoading}
           >
             {isSignUp ? 'Sign in here' : 'Sign up here'}
