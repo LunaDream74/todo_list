@@ -42,7 +42,7 @@ export default function TodoContainer() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Load todos when session is authenticated
+  // Load todos when session status changes
   useEffect(() => {
     const loadTodos = async () => {
       try {
@@ -56,12 +56,13 @@ export default function TodoContainer() {
       }
     };
 
+    // Only load todos when authenticated, and stop loading when unauthenticated
     if (status === 'authenticated') {
       loadTodos();
     } else if (status === 'unauthenticated') {
-      // This shouldn't happen since the page redirects unauthenticated users
       setIsLoading(false);
     }
+    // If status is 'loading', keep isLoading true
   }, [status]);
 
   const handleAddTodo = async (text: string, deadline: string) => {
