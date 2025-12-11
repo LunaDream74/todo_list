@@ -176,33 +176,33 @@ export default function TodoContainer() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your tasks...</p>
+          <Loader className="w-8 h-8 animate-spin text-purple-400 mx-auto mb-4" />
+          <p className="text-slate-300">Loading your tasks...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl shadow-2xl border border-slate-700/50 p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              <h1 className="text-4xl font-bold text-white mb-2">
                 My Tasks
               </h1>
-              <p className="text-gray-600">
+              <p className="text-slate-300">
                 Welcome, {session?.user?.name || 'User'}! • {todos.length} total · {pendingTodos.length} pending · {doneTodos.length} completed
               </p>
             </div>
             <Button
               onClick={handleSignOutClick}
               variant="outline"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-400 hover:text-red-300 hover:bg-red-900/20 border-red-400/50"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -210,13 +210,13 @@ export default function TodoContainer() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
               {error}
             </div>
           )}
 
           {isSaving && (
-            <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg text-blue-600 text-sm flex items-center">
+            <div className="mb-6 p-4 bg-purple-900/20 border border-purple-500/50 rounded-lg text-purple-300 text-sm flex items-center">
               <Loader className="w-4 h-4 animate-spin mr-2" />
               Saving changes...
             </div>
@@ -242,7 +242,7 @@ export default function TodoContainer() {
 
           {/* Filter and Sort Controls */}
           {showFilters && (
-            <div className="bg-gray-50 rounded-lg p-5 mb-6 border-2 border-gray-200 space-y-4">
+            <div className="bg-slate-700/50 rounded-lg p-5 mb-6 border border-slate-600 space-y-4">
               <FilterBar
                 statusFilter={statusFilter}
                 onStatusChange={setStatusFilter}
@@ -278,36 +278,34 @@ export default function TodoContainer() {
           {/* Todos List */}
           {filteredAndSortedTodos.length > 0 && (
             <div className="space-y-6">
-              {(() => {
-                if (statusFilter !== 'all') {
-                  return (
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-                        <span
-                          className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                            statusFilter === 'pending'
-                              ? 'bg-yellow-400'
-                              : 'bg-green-500'
-                          }`}
-                        ></span>
-                        {statusFilter === 'pending' ? 'Pending' : 'Completed'}{' '}
-                        Tasks ({filteredAndSortedTodos.length})
-                      </h2>
-                      <div className="space-y-3">
-                        {filteredAndSortedTodos.map(todo => (
-                          <TodoItem
-                            key={todo.id}
-                            todo={todo}
-                            onToggle={handleToggleStatus}
-                            onEdit={handleUpdateTodo}
-                            onDelete={handleDeleteTodo}
-                            isDisabled={isSaving}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                } else if (deadlineFilter !== 'all') {
+              {statusFilter !== 'all' ? (
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-200 mb-4 flex items-center">
+                    <span
+                      className={`inline-block w-3 h-3 rounded-full mr-2 ${
+                        statusFilter === 'pending'
+                          ? 'bg-yellow-400'
+                          : 'bg-green-500'
+                      }`}
+                    ></span>
+                    {statusFilter === 'pending' ? 'Pending' : 'Completed'}{' '}
+                    Tasks ({filteredAndSortedTodos.length})
+                  </h2>
+                  <div className="space-y-3">
+                    {filteredAndSortedTodos.map(todo => (
+                      <TodoItem
+                        key={todo.id}
+                        todo={todo}
+                        onToggle={handleToggleStatus}
+                        onEdit={handleUpdateTodo}
+                        onDelete={handleDeleteTodo}
+                        isDisabled={isSaving}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : deadlineFilter !== 'all' ? (
+                (() => {
                   const categoryLabels: Record<DeadlineFilter, string> = {
                     all: 'All Tasks',
                     overdue: 'Overdue Tasks',
@@ -317,7 +315,7 @@ export default function TodoContainer() {
 
                   return (
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                      <h2 className="text-xl font-semibold text-slate-200 mb-4">
                         {categoryLabels[deadlineFilter]} (
                         {filteredAndSortedTodos.length})
                       </h2>
@@ -335,7 +333,9 @@ export default function TodoContainer() {
                       </div>
                     </div>
                   );
-                } else {
+                })()
+              ) : (
+                (() => {
                   const pendingFiltered = filteredAndSortedTodos.filter(
                     t => t.status === 'pending'
                   );
@@ -347,7 +347,7 @@ export default function TodoContainer() {
                     <>
                       {pendingFiltered.length > 0 && (
                         <div className="mb-8">
-                          <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+                          <h2 className="text-xl font-semibold text-slate-200 mb-4 flex items-center">
                             <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
                             Pending Tasks ({pendingFiltered.length})
                           </h2>
@@ -368,7 +368,7 @@ export default function TodoContainer() {
 
                       {doneFiltered.length > 0 && (
                         <div>
-                          <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+                          <h2 className="text-xl font-semibold text-slate-200 mb-4 flex items-center">
                             <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
                             Completed Tasks ({doneFiltered.length})
                           </h2>
@@ -388,15 +388,15 @@ export default function TodoContainer() {
                       )}
                     </>
                   );
-                }
-              })()}
+                })()
+              )}
             </div>
           )}
 
           {/* Empty State */}
           {filteredAndSortedTodos.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
+              <p className="text-slate-400 text-lg">
                 {searchQuery ||
                 statusFilter !== 'all' ||
                 deadlineFilter !== 'all'
