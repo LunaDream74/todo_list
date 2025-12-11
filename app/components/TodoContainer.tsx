@@ -176,7 +176,7 @@ export default function TodoContainer() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <Loader className="w-8 h-8 animate-spin text-purple-400 mx-auto mb-4" />
           <p className="text-slate-300">Loading your tasks...</p>
@@ -186,7 +186,7 @@ export default function TodoContainer() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl shadow-2xl border border-slate-700/50 p-8">
           {/* Header */}
