@@ -30,7 +30,7 @@ interface Todo {
 }
 
 export default function TodoContainer() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +42,7 @@ export default function TodoContainer() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Load todos when session status changes
+  // Load todos on component mount (since this component only renders for authenticated users)
   useEffect(() => {
     const loadTodos = async () => {
       try {
@@ -56,14 +56,9 @@ export default function TodoContainer() {
       }
     };
 
-    // Only load todos when authenticated, and stop loading when unauthenticated
-    if (status === 'authenticated') {
-      loadTodos();
-    } else if (status === 'unauthenticated') {
-      setIsLoading(false);
-    }
-    // If status is 'loading', keep isLoading true
-  }, [status]);
+    // Load todos immediately since this component only renders for authenticated users
+    loadTodos();
+  }, []);
 
   const handleAddTodo = async (text: string, deadline: string) => {
     try {
